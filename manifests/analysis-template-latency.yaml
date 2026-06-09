@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: latency-check
+  namespace: demo
+spec:
+  args:
+    - name: service-name
+  metrics:
+    - name: p99-latency
+      interval: 20s
+      successCondition: result[0] < 0.5
+      failureLimit: 3
+      provider:
+        prometheus:
+          address: http://kube-prom-stack-kube-prome-prometheus.monitoring:9090
+          query: |
+            histogram_quantile(0.99,
+              sum(rate(
+                http_request_duration_seconds_bucket{service="{{args.service-name}}"}[30s]
+              )) by (le)
+            )

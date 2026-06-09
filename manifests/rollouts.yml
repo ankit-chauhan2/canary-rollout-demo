@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: demo-app
-          image: argoproj/rollouts-demo:yellow
+          image: argoproj/rollouts-demo:slow-green
           ports:
             - containerPort: 8080
   strategy:
@@ -36,5 +36,11 @@ spec:
         - pause: {duration: 30s}
         - setWeight: 60
         - pause: {duration: 30s}
+        - analysis:
+            templates:
+              - templateName: latency-check
+            args:
+              - name: service-name
+                value: demo-app-canary.demo.svc.cluster.local
         - setWeight: 100
         - pause: {duration: 30s}
