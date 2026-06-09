@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: demo-app
+  namespace: demo
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: demo-app
+  template:
+    metadata:
+      labels:
+        app: demo-app
+    spec:
+      containers:
+        - name: demo-app
+          image: argoproj/rollouts-demo:blue
+          ports:
+            - containerPort: 8080
+  strategy:
+    canary:
+      analysis:
+        templates:
+          - templateName: success-rate
+        startingStep: 1
+        args:
+          - name: service-name
+            value: demo-app-canary.demo.svc.cluster.local
+      canaryService: demo-app-canary
+      stableService: demo-app-stable
+      steps:
+        - setWeight: 10
+        - pause: {duration: 30s}
+        - setWeight: 30
+        - pause: {duration: 30s}
+        - setWeight: 60
+        - pause: {duration: 30s}
+        - setWeight: 100
+        - pause: {duration: 30s}
